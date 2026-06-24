@@ -3,13 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NYT 100 Best Books of the 21st Century</title>
+<title>NYT 100 Best Books Tracker</title>
 <style>
   :root {
     --bg: #0F0F0F;
-    --surface: #181818;
+    --surface: #161616;
     --card: #1E1E1E;
-    --card-hover: #252525;
     --accent: #C8A951;
     --accent-dim: #8A7236;
     --text: #F0EDE6;
@@ -19,643 +18,215 @@
     --read-border: #2E5E2E;
     --read-text: #6BBF6B;
     --star-on: #C8A951;
-    --star-off: #3A3A3A;
-    --font-display: Georgia, 'Times New Roman', serif;
-    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --star-off: #333;
+    --font-serif: Georgia, 'Times New Roman', serif;
+    --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     --font-mono: 'Courier New', monospace;
-    --radius: 6px;
-    --transition: 0.18s ease;
+    --r: 6px;
+    --tr: 0.16s ease;
   }
-
   * { box-sizing: border-box; margin: 0; padding: 0; }
-
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: var(--font-body);
-    font-size: 15px;
-    line-height: 1.6;
-    min-height: 100vh;
-  }
+  body { background: var(--bg); color: var(--text); font-family: var(--font-sans); font-size: 15px; min-height: 100vh; }
 
   /* ── Header ── */
   header {
     background: var(--surface);
     border-bottom: 1px solid var(--border);
-    padding: 28px 32px 20px;
-    position: sticky;
-    top: 0;
-    z-index: 100;
+    padding: 20px 28px 16px;
+    position: sticky; top: 0; z-index: 100;
   }
+  .header-top { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
+  h1 { font-family: var(--font-serif); font-size: clamp(16px,2.5vw,22px); font-weight: normal; }
+  h1 span { color: var(--accent); }
 
-  .header-top {
-    display: flex;
-    align-items: baseline;
-    gap: 16px;
-    margin-bottom: 16px;
-    flex-wrap: wrap;
+  /* ── List Tabs ── */
+  .list-tabs { display: flex; gap: 4px; }
+  .list-tab {
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--r);
+    color: var(--text-muted); cursor: pointer; font-size: 12px; font-weight: 600;
+    padding: 6px 16px; transition: all var(--tr); font-family: var(--font-sans);
+    letter-spacing: 0.04em;
   }
+  .list-tab:hover { border-color: var(--accent-dim); color: var(--text); }
+  .list-tab.active { background: var(--accent); border-color: var(--accent); color: #0F0F0F; }
+  .tab-badge {
+    display: inline-block; background: rgba(0,0,0,0.25); border-radius: 10px;
+    font-size: 10px; padding: 1px 6px; margin-left: 5px;
+  }
+  .list-tab.active .tab-badge { background: rgba(0,0,0,0.2); }
+  .list-desc { font-size: 11px; color: var(--text-muted); margin-left: auto; font-style: italic; }
 
-  h1 {
-    font-family: var(--font-display);
-    font-size: clamp(18px, 3vw, 26px);
-    font-weight: normal;
-    letter-spacing: 0.02em;
-    color: var(--text);
+  /* ── Stats Bar ── */
+  .stats-bar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 28px;
+    display: flex; gap: 0; align-items: stretch; flex-wrap: wrap;
   }
+  .stat-item {
+    flex: 1; min-width: 120px; padding: 8px 20px;
+    border-right: 1px solid var(--border);
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .stat-item:first-child { padding-left: 0; }
+  .stat-item:last-child { border-right: none; }
+  .stat-label { font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); }
+  .stat-value { font-family: var(--font-mono); font-size: 22px; font-weight: bold; color: var(--accent); line-height: 1; }
+  .stat-sub { font-size: 11px; color: var(--text-muted); }
 
-  h1 span {
-    color: var(--accent);
+  /* ── Rating Distribution ── */
+  .rating-dist { display: flex; gap: 3px; align-items: flex-end; height: 28px; }
+  .rd-bar-wrap { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  .rd-bar {
+    width: 14px; background: var(--accent-dim); border-radius: 2px 2px 0 0;
+    min-height: 2px; transition: height 0.4s ease;
   }
-
-  .header-meta {
-    font-family: var(--font-mono);
-    font-size: 12px;
-    color: var(--text-muted);
-    margin-left: auto;
-  }
+  .rd-bar.active { background: var(--accent); }
+  .rd-label { font-size: 9px; color: var(--text-muted); font-family: var(--font-mono); }
 
   /* ── Progress Bar ── */
-  .progress-wrap {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 16px;
-  }
-
-  .progress-bar-bg {
-    flex: 1;
-    height: 4px;
-    background: var(--border);
-    border-radius: 2px;
-    overflow: hidden;
-  }
-
-  .progress-bar-fill {
-    height: 100%;
-    background: linear-gradient(90deg, var(--accent-dim), var(--accent));
-    border-radius: 2px;
-    transition: width 0.4s ease;
-  }
-
-  .progress-label {
-    font-family: var(--font-mono);
-    font-size: 12px;
-    color: var(--accent);
-    white-space: nowrap;
-    min-width: 80px;
-    text-align: right;
-  }
+  .progress-row { display: flex; align-items: center; gap: 10px; padding: 10px 28px; background: var(--surface); border-bottom: 1px solid var(--border); }
+  .progress-bg { flex: 1; height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent-dim), var(--accent)); border-radius: 2px; transition: width 0.5s ease; }
+  .progress-pct { font-family: var(--font-mono); font-size: 11px; color: var(--accent); white-space: nowrap; min-width: 36px; text-align: right; }
 
   /* ── Controls ── */
-  .controls {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    align-items: center;
-  }
-
-  .search-wrap {
-    position: relative;
-    flex: 1;
-    min-width: 180px;
-    max-width: 320px;
-  }
-
+  .controls { padding: 14px 28px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; background: var(--bg); border-bottom: 1px solid var(--border); }
+  .search-wrap { position: relative; flex: 1; min-width: 160px; max-width: 300px; }
+  .search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text-muted); pointer-events: none; font-size: 14px; }
   .search-wrap input {
-    width: 100%;
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    color: var(--text);
-    padding: 8px 12px 8px 34px;
-    font-size: 13px;
-    font-family: var(--font-body);
-    outline: none;
-    transition: border-color var(--transition);
+    width: 100%; background: var(--card); border: 1px solid var(--border); border-radius: var(--r);
+    color: var(--text); padding: 8px 12px 8px 32px; font-size: 13px; outline: none;
+    transition: border-color var(--tr); font-family: var(--font-sans);
   }
-
-  .search-wrap input:focus {
-    border-color: var(--accent-dim);
-  }
-
-  .search-icon {
-    position: absolute;
-    left: 10px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--text-muted);
-    pointer-events: none;
-    font-size: 14px;
-  }
-
-  .filter-btns {
-    display: flex;
-    gap: 4px;
-  }
-
+  .search-wrap input:focus { border-color: var(--accent-dim); }
+  .filter-btns { display: flex; gap: 3px; }
   .filter-btn {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    color: var(--text-muted);
-    cursor: pointer;
-    font-size: 12px;
-    padding: 7px 14px;
-    transition: all var(--transition);
-    font-family: var(--font-body);
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--r);
+    color: var(--text-muted); cursor: pointer; font-size: 12px; padding: 7px 14px;
+    transition: all var(--tr); font-family: var(--font-sans);
   }
-
-  .filter-btn:hover {
-    border-color: var(--accent-dim);
-    color: var(--text);
-  }
-
-  .filter-btn.active {
-    background: var(--accent);
-    border-color: var(--accent);
-    color: #0F0F0F;
-    font-weight: 600;
-  }
-
+  .filter-btn:hover { border-color: var(--accent-dim); color: var(--text); }
+  .filter-btn.active { background: var(--accent); border-color: var(--accent); color: #0F0F0F; font-weight: 600; }
   .sort-select {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    color: var(--text-muted);
-    cursor: pointer;
-    font-size: 12px;
-    padding: 7px 12px;
-    outline: none;
-    font-family: var(--font-body);
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--r);
+    color: var(--text-muted); cursor: pointer; font-size: 12px; padding: 7px 12px;
+    outline: none; font-family: var(--font-sans);
   }
 
   /* ── Grid ── */
-  .grid-wrap {
-    padding: 28px 32px;
-    max-width: 1400px;
-    margin: 0 auto;
-  }
+  .grid-wrap { padding: 20px 28px; max-width: 1400px; margin: 0 auto; }
+  .results-label { font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 14px; }
+  .book-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 14px; }
 
-  .results-label {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--text-muted);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    margin-bottom: 16px;
-  }
-
-  .book-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 16px;
-  }
-
-  /* ── Book Card ── */
+  /* ── Card ── */
   .book-card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    cursor: pointer;
-    overflow: hidden;
-    transition: transform var(--transition), border-color var(--transition), box-shadow var(--transition);
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--r);
+    cursor: pointer; overflow: hidden; transition: transform var(--tr), border-color var(--tr), box-shadow var(--tr);
     position: relative;
   }
-
-  .book-card:hover {
-    transform: translateY(-3px) rotate(0.4deg);
-    border-color: var(--accent-dim);
-    box-shadow: 0 12px 32px rgba(0,0,0,0.5), 0 0 0 1px rgba(200,169,81,0.15);
+  .book-card:hover { transform: translateY(-3px) rotate(0.35deg); border-color: var(--accent-dim); box-shadow: 0 10px 28px rgba(0,0,0,0.5); }
+  .book-card.is-read { border-color: var(--read-border); }
+  .book-card.on-both::after {
+    content: '★'; position: absolute; top: 8px; right: 8px; z-index: 3;
+    background: rgba(200,169,81,0.15); border: 1px solid var(--accent-dim);
+    border-radius: 3px; font-size: 9px; color: var(--accent); padding: 2px 5px;
   }
-
-  .book-card.is-read {
-    border-color: var(--read-border);
-  }
-
+  .book-card.on-both.is-read::after { top: 34px; }
   .rank-badge {
-    position: absolute;
-    top: 8px;
-    left: 8px;
-    background: rgba(15,15,15,0.85);
-    border: 1px solid var(--border);
-    border-radius: 3px;
-    font-family: var(--font-mono);
-    font-size: 10px;
-    color: var(--text-muted);
-    padding: 2px 6px;
-    z-index: 2;
-    backdrop-filter: blur(4px);
+    position: absolute; top: 8px; left: 8px; background: rgba(15,15,15,0.85);
+    border: 1px solid var(--border); border-radius: 3px; font-family: var(--font-mono);
+    font-size: 10px; color: var(--text-muted); padding: 2px 6px; z-index: 2; backdrop-filter: blur(4px);
   }
-
   .read-badge {
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    background: var(--read-bg);
-    border: 1px solid var(--read-border);
-    border-radius: 3px;
-    font-size: 10px;
-    color: var(--read-text);
-    padding: 2px 7px;
-    z-index: 2;
-    font-weight: 600;
-    letter-spacing: 0.05em;
+    position: absolute; top: 8px; right: 8px; background: var(--read-bg); border: 1px solid var(--read-border);
+    border-radius: 3px; font-size: 10px; color: var(--read-text); padding: 2px 7px; z-index: 2;
+    font-weight: 600; letter-spacing: 0.05em;
   }
-
-  .cover-wrap {
-    aspect-ratio: 2/3;
-    overflow: hidden;
-    background: #111;
-    position: relative;
-  }
-
-  .cover-wrap img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-    transition: opacity 0.3s ease;
-  }
-
-  .cover-wrap img.loading {
-    opacity: 0;
-  }
-
+  .book-card.on-both .read-badge { top: 34px; }
+  .cover-wrap { aspect-ratio: 2/3; overflow: hidden; background: #111; position: relative; }
+  .cover-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; opacity: 0; transition: opacity 0.3s; }
+  .cover-wrap img.loaded { opacity: 1; }
   .cover-placeholder {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    background: linear-gradient(145deg, #1a1a1a, #222);
-    padding: 16px;
-    text-align: center;
+    width: 100%; height: 100%; display: none; flex-direction: column;
+    align-items: center; justify-content: center;
+    background: linear-gradient(145deg, #1a1a1a, #222); padding: 14px; text-align: center;
   }
-
-  .cover-placeholder .ph-title {
-    font-family: var(--font-display);
-    font-size: 12px;
-    color: var(--text-muted);
-    line-height: 1.4;
-    margin-top: 10px;
-  }
-
-  .cover-placeholder .ph-icon {
-    font-size: 28px;
-    opacity: 0.3;
-  }
-
-  .card-body {
-    padding: 12px;
-  }
-
-  .card-title {
-    font-family: var(--font-display);
-    font-size: 13px;
-    font-weight: bold;
-    line-height: 1.35;
-    color: var(--text);
-    margin-bottom: 3px;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-
-  .card-author {
-    font-size: 11px;
-    color: var(--text-muted);
-    margin-bottom: 8px;
-  }
-
-  .card-stars {
-    display: flex;
-    gap: 2px;
-    margin-bottom: 6px;
-  }
-
-  .card-stars .star {
-    font-size: 13px;
-    color: var(--star-off);
-  }
-
-  .card-stars .star.on {
-    color: var(--star-on);
-  }
-
-  .card-date {
-    font-family: var(--font-mono);
-    font-size: 10px;
-    color: var(--text-muted);
-  }
-
-  .card-review-snippet {
-    font-size: 11px;
-    color: var(--text-muted);
-    margin-top: 5px;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    font-style: italic;
-  }
+  .cover-placeholder .ph-icon { font-size: 26px; opacity: 0.3; }
+  .cover-placeholder .ph-title { font-family: var(--font-serif); font-size: 11px; color: var(--text-muted); line-height: 1.4; margin-top: 8px; }
+  .card-body { padding: 10px; }
+  .card-title { font-family: var(--font-serif); font-size: 12px; font-weight: bold; line-height: 1.35; margin-bottom: 2px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .card-author { font-size: 11px; color: var(--text-muted); margin-bottom: 7px; }
+  .card-stars { display: flex; gap: 2px; margin-bottom: 4px; }
+  .card-stars .star { font-size: 12px; color: var(--star-off); }
+  .card-stars .star.on { color: var(--star-on); }
+  .card-date { font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); }
+  .card-review-snippet { font-size: 11px; color: var(--text-muted); margin-top: 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-style: italic; }
+  .empty { text-align: center; padding: 60px 20px; color: var(--text-muted); font-family: var(--font-serif); font-size: 16px; grid-column: 1/-1; }
 
   /* ── Modal ── */
   .modal-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.8);
-    z-index: 200;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-    backdrop-filter: blur(4px);
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.2s ease;
+    position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 200;
+    display: flex; align-items: center; justify-content: center; padding: 20px;
+    backdrop-filter: blur(4px); opacity: 0; pointer-events: none; transition: opacity 0.2s;
   }
-
-  .modal-overlay.open {
-    opacity: 1;
-    pointer-events: all;
-  }
-
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
   .modal {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    max-width: 560px;
-    width: 100%;
-    max-height: 90vh;
-    overflow-y: auto;
-    transform: translateY(12px);
-    transition: transform 0.2s ease;
-    scrollbar-width: thin;
-    scrollbar-color: var(--border) transparent;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    max-width: 540px; width: 100%; max-height: 90vh; overflow-y: auto;
+    transform: translateY(10px); transition: transform 0.2s;
+    scrollbar-width: thin; scrollbar-color: var(--border) transparent;
   }
-
-  .modal-overlay.open .modal {
-    transform: translateY(0);
+  .modal-overlay.open .modal { transform: translateY(0); }
+  .modal-header { display: flex; gap: 18px; padding: 22px; border-bottom: 1px solid var(--border); }
+  .modal-cover { width: 80px; min-width: 80px; aspect-ratio: 2/3; object-fit: cover; border-radius: 3px; background: #111; }
+  .modal-cover-ph { width: 80px; min-width: 80px; aspect-ratio: 2/3; background: linear-gradient(145deg,#1a1a1a,#222); border-radius: 3px; display: flex; align-items: center; justify-content: center; font-size: 22px; opacity: 0.4; }
+  .modal-meta { flex: 1; min-width: 0; }
+  .modal-rank { font-family: var(--font-mono); font-size: 11px; color: var(--accent); margin-bottom: 5px; }
+  .modal-title { font-family: var(--font-serif); font-size: 18px; font-weight: bold; line-height: 1.25; margin-bottom: 3px; }
+  .modal-author { font-size: 13px; color: var(--text-muted); margin-bottom: 14px; }
+  .modal-on-both { font-size: 11px; color: var(--accent); margin-bottom: 10px; }
+  .read-toggle { display: flex; align-items: center; gap: 10px; cursor: pointer; user-select: none; }
+  .toggle-track { width: 36px; height: 19px; background: var(--border); border-radius: 10px; position: relative; transition: background var(--tr); flex-shrink: 0; }
+  .toggle-track.on { background: var(--read-border); }
+  .toggle-knob { width: 13px; height: 13px; background: var(--text-muted); border-radius: 50%; position: absolute; top: 3px; left: 3px; transition: left var(--tr), background var(--tr); }
+  .toggle-track.on .toggle-knob { left: 20px; background: var(--read-text); }
+  .toggle-label { font-size: 13px; color: var(--text-muted); }
+  .toggle-track.on + .toggle-label { color: var(--read-text); }
+  .modal-body { padding: 18px 22px 22px; display: flex; flex-direction: column; gap: 18px; }
+  .field-group { display: flex; flex-direction: column; gap: 7px; }
+  .field-label { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); }
+  .star-input { display: flex; gap: 3px; }
+  .star-input .s { font-size: 26px; cursor: pointer; color: var(--star-off); transition: color var(--tr), transform var(--tr); line-height: 1; }
+  .star-input .s:hover, .star-input .s.on { color: var(--star-on); }
+  .star-input .s:hover { transform: scale(1.15); }
+  .date-input, .review-textarea {
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--r);
+    color: var(--text); padding: 9px 12px; font-size: 13px; font-family: var(--font-sans);
+    outline: none; width: 100%; transition: border-color var(--tr);
   }
+  .date-input { color-scheme: dark; }
+  .date-input:focus, .review-textarea:focus { border-color: var(--accent-dim); }
+  .review-textarea { resize: vertical; min-height: 90px; line-height: 1.6; }
+  .review-textarea::placeholder { color: var(--text-muted); }
+  .modal-footer { display: flex; gap: 8px; justify-content: flex-end; border-top: 1px solid var(--border); padding: 14px 22px; }
+  .btn { border-radius: var(--r); cursor: pointer; font-size: 13px; font-family: var(--font-sans); font-weight: 600; padding: 8px 18px; transition: all var(--tr); border: none; }
+  .btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--text-muted); }
+  .btn-ghost:hover { border-color: var(--text-muted); color: var(--text); }
+  .btn-primary { background: var(--accent); color: #0F0F0F; }
+  .btn-primary:hover { background: #D4B45E; }
 
-  .modal-header {
-    display: flex;
-    gap: 20px;
-    padding: 24px;
-    border-bottom: 1px solid var(--border);
-  }
-
-  .modal-cover {
-    width: 90px;
-    min-width: 90px;
-    aspect-ratio: 2/3;
-    object-fit: cover;
-    border-radius: 3px;
-    background: #111;
-  }
-
-  .modal-cover-placeholder {
-    width: 90px;
-    min-width: 90px;
-    aspect-ratio: 2/3;
-    background: linear-gradient(145deg, #1a1a1a, #222);
-    border-radius: 3px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 24px;
-    opacity: 0.4;
-  }
-
-  .modal-meta {
-    flex: 1;
-    min-width: 0;
-  }
-
-  .modal-rank {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--accent);
-    margin-bottom: 6px;
-  }
-
-  .modal-title {
-    font-family: var(--font-display);
-    font-size: 20px;
-    font-weight: bold;
-    line-height: 1.25;
-    margin-bottom: 4px;
-  }
-
-  .modal-author {
-    font-size: 14px;
-    color: var(--text-muted);
-    margin-bottom: 16px;
-  }
-
-  .modal-read-toggle {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    cursor: pointer;
-    user-select: none;
-  }
-
-  .toggle-track {
-    width: 38px;
-    height: 20px;
-    background: var(--border);
-    border-radius: 10px;
-    position: relative;
-    transition: background var(--transition);
-    flex-shrink: 0;
-  }
-
-  .toggle-track.on {
-    background: var(--read-border);
-  }
-
-  .toggle-knob {
-    width: 14px;
-    height: 14px;
-    background: var(--text-muted);
-    border-radius: 50%;
-    position: absolute;
-    top: 3px;
-    left: 3px;
-    transition: left var(--transition), background var(--transition);
-  }
-
-  .toggle-track.on .toggle-knob {
-    left: 21px;
-    background: var(--read-text);
-  }
-
-  .toggle-label {
-    font-size: 13px;
-    color: var(--text-muted);
-  }
-
-  .toggle-track.on + .toggle-label {
-    color: var(--read-text);
-  }
-
-  .modal-body {
-    padding: 20px 24px 24px;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-  }
-
-  .field-group {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .field-label {
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--text-muted);
-  }
-
-  /* ── Star Rating Input ── */
-  .star-input {
-    display: flex;
-    gap: 4px;
-  }
-
-  .star-input .s {
-    font-size: 26px;
-    cursor: pointer;
-    color: var(--star-off);
-    transition: color var(--transition), transform var(--transition);
-    line-height: 1;
-  }
-
-  .star-input .s:hover,
-  .star-input .s.on {
-    color: var(--star-on);
-  }
-
-  .star-input .s:hover {
-    transform: scale(1.15);
-  }
-
-  .star-input .s.on ~ .s {
-    color: var(--star-off);
-  }
-
-  /* ── Date Input ── */
-  .date-input {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    color: var(--text);
-    padding: 9px 12px;
-    font-size: 13px;
-    font-family: var(--font-body);
-    outline: none;
-    width: 100%;
-    transition: border-color var(--transition);
-    color-scheme: dark;
-  }
-
-  .date-input:focus {
-    border-color: var(--accent-dim);
-  }
-
-  /* ── Textarea ── */
-  .review-textarea {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    color: var(--text);
-    padding: 10px 12px;
-    font-size: 13px;
-    font-family: var(--font-body);
-    outline: none;
-    resize: vertical;
-    width: 100%;
-    min-height: 100px;
-    line-height: 1.6;
-    transition: border-color var(--transition);
-  }
-
-  .review-textarea:focus {
-    border-color: var(--accent-dim);
-  }
-
-  .review-textarea::placeholder {
-    color: var(--text-muted);
-  }
-
-  /* ── Modal Footer ── */
-  .modal-footer {
-    display: flex;
-    gap: 10px;
-    justify-content: flex-end;
-    border-top: 1px solid var(--border);
-    padding: 16px 24px;
-  }
-
-  .btn {
-    border-radius: var(--radius);
-    cursor: pointer;
-    font-size: 13px;
-    font-family: var(--font-body);
-    font-weight: 600;
-    padding: 9px 20px;
-    transition: all var(--transition);
-    border: none;
-  }
-
-  .btn-ghost {
-    background: transparent;
-    border: 1px solid var(--border);
-    color: var(--text-muted);
-  }
-
-  .btn-ghost:hover {
-    border-color: var(--text-muted);
-    color: var(--text);
-  }
-
-  .btn-primary {
-    background: var(--accent);
-    color: #0F0F0F;
-  }
-
-  .btn-primary:hover {
-    background: #D4B45E;
-  }
-
-  /* ── Scrollbar ── */
-  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar { width: 5px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 
-  /* ── Empty state ── */
-  .empty {
-    text-align: center;
-    padding: 60px 20px;
-    color: var(--text-muted);
-    font-family: var(--font-display);
-    font-size: 16px;
-    grid-column: 1/-1;
-  }
-
   @media (max-width: 600px) {
-    header { padding: 16px; }
+    header, .stats-bar, .progress-row, .controls { padding-left: 16px; padding-right: 16px; }
     .grid-wrap { padding: 16px; }
-    .book-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
-    .modal-header { flex-direction: column; gap: 14px; }
-    .modal-cover, .modal-cover-placeholder { width: 70px; min-width: 70px; }
+    .book-grid { grid-template-columns: repeat(auto-fill, minmax(145px, 1fr)); gap: 10px; }
+    .stat-item { min-width: 90px; padding: 6px 12px; }
+    .stat-value { font-size: 18px; }
+    .modal-header { flex-direction: column; }
   }
 </style>
 </head>
@@ -663,33 +234,72 @@
 
 <header>
   <div class="header-top">
-    <h1>NYT 100 Best Books <span>of the 21st Century</span></h1>
-    <div class="header-meta" id="headerMeta">0 of 100 read</div>
-  </div>
-  <div class="progress-wrap">
-    <div class="progress-bar-bg">
-      <div class="progress-bar-fill" id="progressFill" style="width:0%"></div>
+    <h1>NYT Best Books <span>of the 21st Century</span></h1>
+    <div class="list-tabs">
+      <button class="list-tab active" data-list="critics" id="tabCritics">
+        Critics' Pick <span class="tab-badge" id="criticsBadge">0/100</span>
+      </button>
+      <button class="list-tab" data-list="readers" id="tabReaders">
+        Readers' Pick <span class="tab-badge" id="readersBadge">0/100</span>
+      </button>
     </div>
-    <div class="progress-label" id="progressLabel">0%</div>
-  </div>
-  <div class="controls">
-    <div class="search-wrap">
-      <span class="search-icon">⌕</span>
-      <input type="text" id="searchInput" placeholder="Search title or author…">
-    </div>
-    <div class="filter-btns">
-      <button class="filter-btn active" data-filter="all">All</button>
-      <button class="filter-btn" data-filter="read">Read</button>
-      <button class="filter-btn" data-filter="unread">Unread</button>
-    </div>
-    <select class="sort-select" id="sortSelect">
-      <option value="rank">Sort: Rank</option>
-      <option value="rating">Sort: Rating</option>
-      <option value="date">Sort: Date Read</option>
-      <option value="alpha">Sort: A–Z</option>
-    </select>
+    <div class="list-desc" id="listDesc">Voted by 503 novelists, critics &amp; writers</div>
   </div>
 </header>
+
+<!-- Stats -->
+<div class="stats-bar" id="statsBar">
+  <div class="stat-item">
+    <div class="stat-label">Read</div>
+    <div class="stat-value" id="statRead">0</div>
+    <div class="stat-sub" id="statReadSub">of 100 books</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-label">Avg Rating</div>
+    <div class="stat-value" id="statAvg">—</div>
+    <div class="stat-sub" id="statAvgSub">from rated books</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-label">Rated</div>
+    <div class="stat-value" id="statRated">0</div>
+    <div class="stat-sub">books rated</div>
+  </div>
+  <div class="stat-item" style="flex:2; min-width:180px;">
+    <div class="stat-label">Rating Breakdown</div>
+    <div class="rating-dist" id="ratingDist">
+      <div class="rd-bar-wrap"><div class="rd-bar" id="bar1" style="height:2px"></div><div class="rd-label">1★</div></div>
+      <div class="rd-bar-wrap"><div class="rd-bar" id="bar2" style="height:2px"></div><div class="rd-label">2★</div></div>
+      <div class="rd-bar-wrap"><div class="rd-bar" id="bar3" style="height:2px"></div><div class="rd-label">3★</div></div>
+      <div class="rd-bar-wrap"><div class="rd-bar" id="bar4" style="height:2px"></div><div class="rd-label">4★</div></div>
+      <div class="rd-bar-wrap"><div class="rd-bar" id="bar5" style="height:2px"></div><div class="rd-label">5★</div></div>
+    </div>
+    <div class="stat-sub" id="statDistSub"></div>
+  </div>
+</div>
+
+<div class="progress-row">
+  <div class="progress-bg"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+  <div class="progress-pct" id="progressPct">0%</div>
+</div>
+
+<!-- Controls -->
+<div class="controls">
+  <div class="search-wrap">
+    <span class="search-icon">⌕</span>
+    <input type="text" id="searchInput" placeholder="Search title or author…">
+  </div>
+  <div class="filter-btns">
+    <button class="filter-btn active" data-filter="all">All</button>
+    <button class="filter-btn" data-filter="read">Read</button>
+    <button class="filter-btn" data-filter="unread">Unread</button>
+  </div>
+  <select class="sort-select" id="sortSelect">
+    <option value="rank">Sort: Rank</option>
+    <option value="rating">Sort: Rating</option>
+    <option value="date">Sort: Date Read</option>
+    <option value="alpha">Sort: A–Z</option>
+  </select>
+</div>
 
 <div class="grid-wrap">
   <div class="results-label" id="resultsLabel"></div>
@@ -698,33 +308,30 @@
 
 <!-- Modal -->
 <div class="modal-overlay" id="modalOverlay">
-  <div class="modal" id="modal">
+  <div class="modal">
     <div class="modal-header">
       <div id="modalCoverWrap"></div>
       <div class="modal-meta">
         <div class="modal-rank" id="modalRank"></div>
         <div class="modal-title" id="modalTitle"></div>
         <div class="modal-author" id="modalAuthor"></div>
-        <label class="modal-read-toggle" id="readToggle">
-          <div class="toggle-track" id="toggleTrack">
-            <div class="toggle-knob"></div>
-          </div>
+        <div class="modal-on-both" id="modalOnBoth" style="display:none"></div>
+        <label class="read-toggle" id="readToggle">
+          <div class="toggle-track" id="toggleTrack"><div class="toggle-knob"></div></div>
           <span class="toggle-label" id="toggleLabel">Mark as read</span>
         </label>
       </div>
     </div>
     <div class="modal-body">
-      <div class="field-group" id="ratingGroup">
+      <div class="field-group">
         <div class="field-label">Your Rating</div>
         <div class="star-input" id="starInput">
-          <span class="s" data-v="1">★</span>
-          <span class="s" data-v="2">★</span>
-          <span class="s" data-v="3">★</span>
-          <span class="s" data-v="4">★</span>
+          <span class="s" data-v="1">★</span><span class="s" data-v="2">★</span>
+          <span class="s" data-v="3">★</span><span class="s" data-v="4">★</span>
           <span class="s" data-v="5">★</span>
         </div>
       </div>
-      <div class="field-group" id="dateGroup">
+      <div class="field-group">
         <label class="field-label" for="dateInput">Date Read</label>
         <input type="date" id="dateInput" class="date-input">
       </div>
@@ -741,361 +348,442 @@
 </div>
 
 <script>
-const BOOKS = [
-  { rank: 1, title: "My Brilliant Friend", author: "Elena Ferrante", isbn: "9781609450786" },
-  { rank: 2, title: "The Warmth of Other Suns", author: "Isabel Wilkerson", isbn: "9780679763888" },
-  { rank: 3, title: "Wolf Hall", author: "Hilary Mantel", isbn: "9780312429029" },
-  { rank: 4, title: "The Known World", author: "Edward P. Jones", isbn: "9780060557553" },
-  { rank: 5, title: "The Corrections", author: "Jonathan Franzen", isbn: "9780374129953" },
-  { rank: 6, title: "2666", author: "Roberto Bolaño", isbn: "9780312429218" },
-  { rank: 7, title: "The Underground Railroad", author: "Colson Whitehead", isbn: "9780345804327" },
-  { rank: 8, title: "Austerlitz", author: "W. G. Sebald", isbn: "9780812982619" },
-  { rank: 9, title: "Never Let Me Go", author: "Kazuo Ishiguro", isbn: "9781400078776" },
-  { rank: 10, title: "Gilead", author: "Marilynne Robinson", isbn: "9780374153892" },
-  { rank: 11, title: "The Sympathizer", author: "Viet Thanh Nguyen", isbn: "9780802123459" },
-  { rank: 12, title: "The Return", author: "Hisham Matar", isbn: "9780399184659" },
-  { rank: 13, title: "The Collected Stories of Lydia Davis", author: "Lydia Davis", isbn: "9780374270605" },
-  { rank: 14, title: "Detransition, Baby", author: "Torrey Peters", isbn: "9780593133378" },
-  { rank: 15, title: "Frederick Douglass: Prophet of Freedom", author: "David W. Blight", isbn: "9781416590316" },
-  { rank: 16, title: "Pastoralia", author: "George Saunders", isbn: "9781573228473" },
-  { rank: 17, title: "The Emperor of All Maladies", author: "Siddhartha Mukherjee", isbn: "9781439107959" },
-  { rank: 18, title: "When We Cease to Understand the World", author: "Benjamin Labatut", isbn: "9781782276142" },
-  { rank: 19, title: "Hurricane Season", author: "Fernanda Melchor", isbn: "9780811228879" },
-  { rank: 20, title: "Pulphead Essays", author: "John Jeremiah Sullivan", isbn: "9780374532185" },
-  { rank: 21, title: "The Story of the Lost Child", author: "Elena Ferrante", isbn: "9781609452865" },
-  { rank: 22, title: "A Manual for Cleaning Women", author: "Lucia Berlin", isbn: "9780374202392" },
-  { rank: 23, title: "Septology", author: "Jon Fosse", isbn: "9781945492563" },
-  { rank: 24, title: "An American Marriage", author: "Tayari Jones", isbn: "9781616208776" },
-  { rank: 25, title: "Tomorrow, and Tomorrow, and Tomorrow", author: "Gabrielle Zevin", isbn: "9780593321201" },
-  { rank: 26, title: "Exit West", author: "Mohsin Hamid", isbn: "9781594634291" },
-  { rank: 27, title: "Olive Kitteridge", author: "Elizabeth Strout", isbn: "9781400062089" },
-  { rank: 28, title: "The Passage of Power", author: "Robert A. Caro", isbn: "9780679405078" },
-  { rank: 29, title: "Secondhand Time", author: "Svetlana Alexievich", isbn: "9780399588808" },
-  { rank: 30, title: "The Copenhagen Trilogy", author: "Tove Ditlevsen", isbn: "9780374602741" },
-  { rank: 31, title: "All Aunt Hagar's Children", author: "Edward P. Jones", isbn: "9780060557577" },
-  { rank: 32, title: "The New Jim Crow", author: "Michelle Alexander", isbn: "9781595586438" },
-  { rank: 33, title: "The Friend", author: "Sigrid Nunez", isbn: "9780735219458" },
-  { rank: 34, title: "Far From the Tree", author: "Andrew Solomon", isbn: "9780743236966" },
-  { rank: 35, title: "We the Animals", author: "Justin Torres", isbn: "9780547844190" },
-  { rank: 36, title: "The Plot Against America", author: "Philip Roth", isbn: "9780618509973" },
-  { rank: 37, title: "The Great Believers", author: "Rebecca Makkai", isbn: "9780735224032" },
-  { rank: 38, title: "Veronica", author: "Mary Gaitskill", isbn: "9780375421617" },
-  { rank: 39, title: "10:04", author: "Ben Lerner", isbn: "9780865477063" },
-  { rank: 40, title: "Demon Copperhead", author: "Barbara Kingsolver", isbn: "9780063251922" },
-  { rank: 41, title: "Men We Reaped", author: "Jesmyn Ward", isbn: "9781608197651" },
-  { rank: 42, title: "Wayward Lives, Beautiful Experiments", author: "Saidiya Hartman", isbn: "9780393356809" },
-  { rank: 43, title: "Bring Up the Bodies", author: "Hilary Mantel", isbn: "9780805090031" },
-  { rank: 44, title: "On Beauty", author: "Zadie Smith", isbn: "9781594200106" },
-  { rank: 45, title: "Station Eleven", author: "Emily St. John Mandel", isbn: "9780385353304" },
-  { rank: 46, title: "The Days of Abandonment", author: "Elena Ferrante", isbn: "9781933372006" },
-  { rank: 47, title: "The Human Stain", author: "Philip Roth", isbn: "9780395985847" },
-  { rank: 48, title: "Bel Canto", author: "Ann Patchett", isbn: "9780060838720" },
-  { rank: 49, title: "How to Be Both", author: "Ali Smith", isbn: "9781101870730" },
-  { rank: 50, title: "Tree of Smoke", author: "Denis Johnson", isbn: "9780374279127" },
-  { rank: 51, title: "The Vegetarian", author: "Han Kang", isbn: "9781101906118" },
-  { rank: 52, title: "Evicted", author: "Matthew Desmond", isbn: "9780553447453" },
-  { rank: 53, title: "Say Nothing", author: "Patrick Radden Keefe", isbn: "9780385521314" },
-  { rank: 54, title: "Between the World and Me", author: "Ta-Nehisi Coates", isbn: "9780812993547" },
-  { rank: 55, title: "The Road", author: "Cormac McCarthy", isbn: "9780307265432" },
-  { rank: 56, title: "A Visit from the Goon Squad", author: "Jennifer Egan", isbn: "9780307592835" },
-  { rank: 57, title: "Pachinko", author: "Min Jin Lee", isbn: "9781455563937" },
-  { rank: 58, title: "The Year of Magical Thinking", author: "Joan Didion", isbn: "9781400043149" },
-  { rank: 59, title: "The Brief Wondrous Life of Oscar Wao", author: "Junot Díaz", isbn: "9781594489587" },
-  { rank: 60, title: "Educated", author: "Tara Westover", isbn: "9780399590504" },
-  { rank: 61, title: "The Nickel Boys", author: "Colson Whitehead", isbn: "9780385537070" },
-  { rank: 62, title: "Outline", author: "Rachel Cusk", isbn: "9780374228347" },
-  { rank: 63, title: "White Teeth", author: "Zadie Smith", isbn: "9780375703867" },
-  { rank: 64, title: "The Line of Beauty", author: "Alan Hollinghurst", isbn: "9781582344942" },
-  { rank: 65, title: "Persepolis", author: "Marjane Satrapi", isbn: "9780375422300" },
-  { rank: 66, title: "Fun Home", author: "Alison Bechdel", isbn: "9780618871711" },
-  { rank: 67, title: "A Little Life", author: "Hanya Yanagihara", isbn: "9780385539258" },
-  { rank: 68, title: "The Sellout", author: "Paul Beatty", isbn: "9780374260507" },
-  { rank: 69, title: "Runaway", author: "Alice Munro", isbn: "9781400042821" },
-  { rank: 70, title: "The Savage Detectives", author: "Roberto Bolaño", isbn: "9780312427481" },
-  { rank: 71, title: "A Gentleman in Moscow", author: "Amor Towles", isbn: "9780670026197" },
-  { rank: 72, title: "The Overstory", author: "Richard Powers", isbn: "9780393356687" },
-  { rank: 73, title: "The Last Samurai", author: "Helen DeWitt", isbn: "9780811228725" },
-  { rank: 74, title: "The Goldfinch", author: "Donna Tartt", isbn: "9780316055437" },
-  { rank: 75, title: "Lincoln in the Bardo", author: "George Saunders", isbn: "9780812995343" },
-  { rank: 76, title: "All the Light We Cannot See", author: "Anthony Doerr", isbn: "9781476746586" },
-  { rank: 77, title: "The Amazing Adventures of Kavalier & Clay", author: "Michael Chabon", isbn: "9780312282998" },
-  { rank: 78, title: "Postwar", author: "Tony Judt", isbn: "9781594200977" },
-  { rank: 79, title: "A Brief History of Seven Killings", author: "Marlon James", isbn: "9781594633942" },
-  { rank: 80, title: "Nickel and Dimed", author: "Barbara Ehrenreich", isbn: "9780805063899" },
-  { rank: 81, title: "Tenth of December", author: "George Saunders", isbn: "9780812984255" },
-  { rank: 82, title: "The Empathy Exams", author: "Leslie Jamison", isbn: "9781555976712" },
-  { rank: 83, title: "The Flamethrowers", author: "Rachel Kushner", isbn: "9781439142004" },
-  { rank: 84, title: "Half of a Yellow Sun", author: "Chimamanda Ngozi Adichie", isbn: "9781400044160" },
-  { rank: 85, title: "The Looming Tower", author: "Lawrence Wright", isbn: "9780375414862" },
-  { rank: 86, title: "Sing, Unburied, Sing", author: "Jesmyn Ward", isbn: "9781501126062" },
-  { rank: 87, title: "Americanah", author: "Chimamanda Ngozi Adichie", isbn: "9780307455925" },
-  { rank: 88, title: "The Fifth Season", author: "N.K. Jemisin", isbn: "9780316229296" },
-  { rank: 89, title: "Swamplandia!", author: "Karen Russell", isbn: "9780307263995" },
-  { rank: 90, title: "How Should a Person Be?", author: "Sheila Heti", isbn: "9780805096729" },
-  { rank: 91, title: "Heavy", author: "Kiese Laymon", isbn: "9781501125652" },
-  { rank: 92, title: "Grief Is the Thing with Feathers", author: "Max Porter", isbn: "9781555977412" },
-  { rank: 93, title: "The Nix", author: "Nathan Hill", isbn: "9781101946619" },
-  { rank: 94, title: "Normal People", author: "Sally Rooney", isbn: "9781984822178" },
-  { rank: 95, title: "Checkout 19", author: "Claire-Louise Bennett", isbn: "9780374602727" },
-  { rank: 96, title: "I Feel Bad About My Neck", author: "Nora Ephron", isbn: "9780307264558" },
-  { rank: 97, title: "Conversations with Friends", author: "Sally Rooney", isbn: "9780571333134" },
-  { rank: 98, title: "The Line Becomes a River", author: "Francisco Cantú", isbn: "9780735217713" },
-  { rank: 99, title: "Bewilderment", author: "Richard Powers", isbn: "9780393881141" },
-  { rank: 100, title: "The Topeka School", author: "Ben Lerner", isbn: "9780374277901" },
+// ── Data ───────────────────────────────────────────────────────────
+const CRITICS = [
+  {rank:1,title:"My Brilliant Friend",author:"Elena Ferrante",isbn:"9781609450786"},
+  {rank:2,title:"The Warmth of Other Suns",author:"Isabel Wilkerson",isbn:"9780679763888"},
+  {rank:3,title:"Wolf Hall",author:"Hilary Mantel",isbn:"9780312429029"},
+  {rank:4,title:"The Known World",author:"Edward P. Jones",isbn:"9780060557553"},
+  {rank:5,title:"The Corrections",author:"Jonathan Franzen",isbn:"9780374129953"},
+  {rank:6,title:"2666",author:"Roberto Bolaño",isbn:"9780312429218"},
+  {rank:7,title:"The Underground Railroad",author:"Colson Whitehead",isbn:"9780345804327"},
+  {rank:8,title:"Austerlitz",author:"W. G. Sebald",isbn:"9780812982619"},
+  {rank:9,title:"Never Let Me Go",author:"Kazuo Ishiguro",isbn:"9781400078776"},
+  {rank:10,title:"Gilead",author:"Marilynne Robinson",isbn:"9780374153892"},
+  {rank:11,title:"The Sympathizer",author:"Viet Thanh Nguyen",isbn:"9780802123459"},
+  {rank:12,title:"The Return",author:"Hisham Matar",isbn:"9780399184659"},
+  {rank:13,title:"The Collected Stories of Lydia Davis",author:"Lydia Davis",isbn:"9780374270605"},
+  {rank:14,title:"Detransition, Baby",author:"Torrey Peters",isbn:"9780593133378"},
+  {rank:15,title:"Frederick Douglass: Prophet of Freedom",author:"David W. Blight",isbn:"9781416590316"},
+  {rank:16,title:"Pastoralia",author:"George Saunders",isbn:"9781573228473"},
+  {rank:17,title:"The Emperor of All Maladies",author:"Siddhartha Mukherjee",isbn:"9781439107959"},
+  {rank:18,title:"When We Cease to Understand the World",author:"Benjamin Labatut",isbn:"9781782276142"},
+  {rank:19,title:"Hurricane Season",author:"Fernanda Melchor",isbn:"9780811228879"},
+  {rank:20,title:"Pulphead Essays",author:"John Jeremiah Sullivan",isbn:"9780374532185"},
+  {rank:21,title:"The Story of the Lost Child",author:"Elena Ferrante",isbn:"9781609452865"},
+  {rank:22,title:"A Manual for Cleaning Women",author:"Lucia Berlin",isbn:"9780374202392"},
+  {rank:23,title:"Septology",author:"Jon Fosse",isbn:"9781945492563"},
+  {rank:24,title:"An American Marriage",author:"Tayari Jones",isbn:"9781616208776"},
+  {rank:25,title:"Tomorrow, and Tomorrow, and Tomorrow",author:"Gabrielle Zevin",isbn:"9780593321201"},
+  {rank:26,title:"Exit West",author:"Mohsin Hamid",isbn:"9781594634291"},
+  {rank:27,title:"Olive Kitteridge",author:"Elizabeth Strout",isbn:"9781400062089"},
+  {rank:28,title:"The Passage of Power",author:"Robert A. Caro",isbn:"9780679405078"},
+  {rank:29,title:"Secondhand Time",author:"Svetlana Alexievich",isbn:"9780399588808"},
+  {rank:30,title:"The Copenhagen Trilogy",author:"Tove Ditlevsen",isbn:"9780374602741"},
+  {rank:31,title:"All Aunt Hagar's Children",author:"Edward P. Jones",isbn:"9780060557577"},
+  {rank:32,title:"The New Jim Crow",author:"Michelle Alexander",isbn:"9781595586438"},
+  {rank:33,title:"The Friend",author:"Sigrid Nunez",isbn:"9780735219458"},
+  {rank:34,title:"Far From the Tree",author:"Andrew Solomon",isbn:"9780743236966"},
+  {rank:35,title:"We the Animals",author:"Justin Torres",isbn:"9780547844190"},
+  {rank:36,title:"The Plot Against America",author:"Philip Roth",isbn:"9780618509973"},
+  {rank:37,title:"The Great Believers",author:"Rebecca Makkai",isbn:"9780735224032"},
+  {rank:38,title:"Veronica",author:"Mary Gaitskill",isbn:"9780375421617"},
+  {rank:39,title:"10:04",author:"Ben Lerner",isbn:"9780865477063"},
+  {rank:40,title:"Demon Copperhead",author:"Barbara Kingsolver",isbn:"9780063251922"},
+  {rank:41,title:"Men We Reaped",author:"Jesmyn Ward",isbn:"9781608197651"},
+  {rank:42,title:"Wayward Lives, Beautiful Experiments",author:"Saidiya Hartman",isbn:"9780393356809"},
+  {rank:43,title:"Bring Up the Bodies",author:"Hilary Mantel",isbn:"9780805090031"},
+  {rank:44,title:"On Beauty",author:"Zadie Smith",isbn:"9781594200106"},
+  {rank:45,title:"Station Eleven",author:"Emily St. John Mandel",isbn:"9780385353304"},
+  {rank:46,title:"The Days of Abandonment",author:"Elena Ferrante",isbn:"9781933372006"},
+  {rank:47,title:"The Human Stain",author:"Philip Roth",isbn:"9780395985847"},
+  {rank:48,title:"Bel Canto",author:"Ann Patchett",isbn:"9780060838720"},
+  {rank:49,title:"How to Be Both",author:"Ali Smith",isbn:"9781101870730"},
+  {rank:50,title:"Tree of Smoke",author:"Denis Johnson",isbn:"9780374279127"},
+  {rank:51,title:"The Vegetarian",author:"Han Kang",isbn:"9781101906118"},
+  {rank:52,title:"Evicted",author:"Matthew Desmond",isbn:"9780553447453"},
+  {rank:53,title:"Say Nothing",author:"Patrick Radden Keefe",isbn:"9780385521314"},
+  {rank:54,title:"Between the World and Me",author:"Ta-Nehisi Coates",isbn:"9780812993547"},
+  {rank:55,title:"The Road",author:"Cormac McCarthy",isbn:"9780307265432"},
+  {rank:56,title:"A Visit from the Goon Squad",author:"Jennifer Egan",isbn:"9780307592835"},
+  {rank:57,title:"Pachinko",author:"Min Jin Lee",isbn:"9781455563937"},
+  {rank:58,title:"The Year of Magical Thinking",author:"Joan Didion",isbn:"9781400043149"},
+  {rank:59,title:"The Brief Wondrous Life of Oscar Wao",author:"Junot Díaz",isbn:"9781594489587"},
+  {rank:60,title:"Educated",author:"Tara Westover",isbn:"9780399590504"},
+  {rank:61,title:"The Nickel Boys",author:"Colson Whitehead",isbn:"9780385537070"},
+  {rank:62,title:"Outline",author:"Rachel Cusk",isbn:"9780374228347"},
+  {rank:63,title:"White Teeth",author:"Zadie Smith",isbn:"9780375703867"},
+  {rank:64,title:"The Line of Beauty",author:"Alan Hollinghurst",isbn:"9781582344942"},
+  {rank:65,title:"Persepolis",author:"Marjane Satrapi",isbn:"9780375422300"},
+  {rank:66,title:"Fun Home",author:"Alison Bechdel",isbn:"9780618871711"},
+  {rank:67,title:"A Little Life",author:"Hanya Yanagihara",isbn:"9780385539258"},
+  {rank:68,title:"The Sellout",author:"Paul Beatty",isbn:"9780374260507"},
+  {rank:69,title:"Runaway",author:"Alice Munro",isbn:"9781400042821"},
+  {rank:70,title:"The Savage Detectives",author:"Roberto Bolaño",isbn:"9780312427481"},
+  {rank:71,title:"A Gentleman in Moscow",author:"Amor Towles",isbn:"9780670026197"},
+  {rank:72,title:"The Overstory",author:"Richard Powers",isbn:"9780393356687"},
+  {rank:73,title:"The Last Samurai",author:"Helen DeWitt",isbn:"9780811228725"},
+  {rank:74,title:"The Goldfinch",author:"Donna Tartt",isbn:"9780316055437"},
+  {rank:75,title:"Lincoln in the Bardo",author:"George Saunders",isbn:"9780812995343"},
+  {rank:76,title:"All the Light We Cannot See",author:"Anthony Doerr",isbn:"9781476746586"},
+  {rank:77,title:"The Amazing Adventures of Kavalier & Clay",author:"Michael Chabon",isbn:"9780312282998"},
+  {rank:78,title:"Postwar",author:"Tony Judt",isbn:"9781594200977"},
+  {rank:79,title:"A Brief History of Seven Killings",author:"Marlon James",isbn:"9781594633942"},
+  {rank:80,title:"Nickel and Dimed",author:"Barbara Ehrenreich",isbn:"9780805063899"},
+  {rank:81,title:"Tenth of December",author:"George Saunders",isbn:"9780812984255"},
+  {rank:82,title:"The Empathy Exams",author:"Leslie Jamison",isbn:"9781555976712"},
+  {rank:83,title:"The Flamethrowers",author:"Rachel Kushner",isbn:"9781439142004"},
+  {rank:84,title:"Half of a Yellow Sun",author:"Chimamanda Ngozi Adichie",isbn:"9781400044160"},
+  {rank:85,title:"The Looming Tower",author:"Lawrence Wright",isbn:"9780375414862"},
+  {rank:86,title:"Sing, Unburied, Sing",author:"Jesmyn Ward",isbn:"9781501126062"},
+  {rank:87,title:"Americanah",author:"Chimamanda Ngozi Adichie",isbn:"9780307455925"},
+  {rank:88,title:"The Fifth Season",author:"N.K. Jemisin",isbn:"9780316229296"},
+  {rank:89,title:"Swamplandia!",author:"Karen Russell",isbn:"9780307263995"},
+  {rank:90,title:"How Should a Person Be?",author:"Sheila Heti",isbn:"9780805096729"},
+  {rank:91,title:"Heavy",author:"Kiese Laymon",isbn:"9781501125652"},
+  {rank:92,title:"Grief Is the Thing with Feathers",author:"Max Porter",isbn:"9781555977412"},
+  {rank:93,title:"The Nix",author:"Nathan Hill",isbn:"9781101946619"},
+  {rank:94,title:"Normal People",author:"Sally Rooney",isbn:"9781984822178"},
+  {rank:95,title:"Checkout 19",author:"Claire-Louise Bennett",isbn:"9780374602727"},
+  {rank:96,title:"I Feel Bad About My Neck",author:"Nora Ephron",isbn:"9780307264558"},
+  {rank:97,title:"Conversations with Friends",author:"Sally Rooney",isbn:"9780571333134"},
+  {rank:98,title:"The Line Becomes a River",author:"Francisco Cantú",isbn:"9780735217713"},
+  {rank:99,title:"Bewilderment",author:"Richard Powers",isbn:"9780393881141"},
+  {rank:100,title:"The Topeka School",author:"Ben Lerner",isbn:"9780374277901"},
 ];
 
-const STORAGE_KEY = 'nyt100_tracker_v1';
+const READERS = [
+  {rank:1,title:"Demon Copperhead",author:"Barbara Kingsolver",isbn:"9780063251922"},
+  {rank:2,title:"All the Light We Cannot See",author:"Anthony Doerr",isbn:"9781476746586"},
+  {rank:3,title:"A Gentleman in Moscow",author:"Amor Towles",isbn:"9780670026197"},
+  {rank:4,title:"The Goldfinch",author:"Donna Tartt",isbn:"9780316055437"},
+  {rank:5,title:"Pachinko",author:"Min Jin Lee",isbn:"9781455563937"},
+  {rank:6,title:"Educated",author:"Tara Westover",isbn:"9780399590504"},
+  {rank:7,title:"Tomorrow, and Tomorrow, and Tomorrow",author:"Gabrielle Zevin",isbn:"9780593321201"},
+  {rank:8,title:"My Brilliant Friend",author:"Elena Ferrante",isbn:"9781609450786"},
+  {rank:9,title:"Never Let Me Go",author:"Kazuo Ishiguro",isbn:"9781400078776"},
+  {rank:10,title:"Station Eleven",author:"Emily St. John Mandel",isbn:"9780385353304"},
+  {rank:11,title:"A Little Life",author:"Hanya Yanagihara",isbn:"9780385539258"},
+  {rank:12,title:"The Overstory",author:"Richard Powers",isbn:"9780393356687"},
+  {rank:13,title:"The Underground Railroad",author:"Colson Whitehead",isbn:"9780345804327"},
+  {rank:14,title:"Wolf Hall",author:"Hilary Mantel",isbn:"9780312429029"},
+  {rank:15,title:"The Road",author:"Cormac McCarthy",isbn:"9780307265432"},
+  {rank:16,title:"Lincoln in the Bardo",author:"George Saunders",isbn:"9780812995343"},
+  {rank:17,title:"Atonement",author:"Ian McEwan",isbn:"9780385721790"},
+  {rank:18,title:"Middlesex",author:"Jeffrey Eugenides",isbn:"9780312427733"},
+  {rank:19,title:"Americanah",author:"Chimamanda Ngozi Adichie",isbn:"9780307455925"},
+  {rank:20,title:"The Amazing Adventures of Kavalier & Clay",author:"Michael Chabon",isbn:"9780812983586"},
+  {rank:21,title:"Homegoing",author:"Yaa Gyasi",isbn:"9781101947135"},
+  {rank:22,title:"Hamnet",author:"Maggie O'Farrell",isbn:"9780525657606"},
+  {rank:23,title:"The Warmth of Other Suns",author:"Isabel Wilkerson",isbn:"9780679763888"},
+  {rank:24,title:"Bel Canto",author:"Ann Patchett",isbn:"9780060838720"},
+  {rank:25,title:"Gilead",author:"Marilynne Robinson",isbn:"9780374153892"},
+  {rank:26,title:"The Corrections",author:"Jonathan Franzen",isbn:"9780374129953"},
+  {rank:27,title:"Normal People",author:"Sally Rooney",isbn:"9781984822178"},
+  {rank:28,title:"Cutting for Stone",author:"Abraham Verghese",isbn:"9780307277411"},
+  {rank:29,title:"Say Nothing",author:"Patrick Radden Keefe",isbn:"9780385521314"},
+  {rank:30,title:"A Visit from the Goon Squad",author:"Jennifer Egan",isbn:"9780307592835"},
+  {rank:31,title:"Circe",author:"Madeline Miller",isbn:"9780316556347"},
+  {rank:32,title:"Cloud Cuckoo Land",author:"Anthony Doerr",isbn:"9781982172374"},
+  {rank:33,title:"The Book Thief",author:"Markus Zusak",isbn:"9780375842207"},
+  {rank:34,title:"Cloud Atlas",author:"David Mitchell",isbn:"9780375507250"},
+  {rank:35,title:"The Covenant of Water",author:"Abraham Verghese",isbn:"9780802162175"},
+  {rank:36,title:"The Year of Magical Thinking",author:"Joan Didion",isbn:"9781400043149"},
+  {rank:37,title:"The Nickel Boys",author:"Colson Whitehead",isbn:"9780385537070"},
+  {rank:38,title:"The Great Believers",author:"Rebecca Makkai",isbn:"9780735224032"},
+  {rank:39,title:"Olive Kitteridge",author:"Elizabeth Strout",isbn:"9781400062089"},
+  {rank:40,title:"The Kite Runner",author:"Khaled Hosseini",isbn:"9781594631931"},
+  {rank:41,title:"Life After Life",author:"Kate Atkinson",isbn:"9780316176484"},
+  {rank:42,title:"The Brief Wondrous Life of Oscar Wao",author:"Junot Díaz",isbn:"9781594489587"},
+  {rank:43,title:"Between the World and Me",author:"Ta-Nehisi Coates",isbn:"9780812993547"},
+  {rank:44,title:"The Heaven and Earth Grocery Store",author:"James McBride",isbn:"9780593422946"},
+  {rank:45,title:"There There",author:"Tommy Orange",isbn:"9781524747114"},
+  {rank:46,title:"The Song of Achilles",author:"Madeline Miller",isbn:"9780062060624"},
+  {rank:47,title:"Lessons in Chemistry",author:"Bonnie Garmus",isbn:"9780385547345"},
+  {rank:48,title:"On Earth We're Briefly Gorgeous",author:"Ocean Vuong",isbn:"9780525562023"},
+  {rank:49,title:"Gone Girl",author:"Gillian Flynn",isbn:"9780307588364"},
+  {rank:50,title:"James",author:"Percival Everett",isbn:"9780385550369"},
+  {rank:51,title:"Caste",author:"Isabel Wilkerson",isbn:"9780593230251"},
+  {rank:52,title:"The Nightingale",author:"Kristin Hannah",isbn:"9780312577223"},
+  {rank:53,title:"Trust",author:"Hernan Diaz",isbn:"9780593420485"},
+  {rank:54,title:"11/22/63",author:"Stephen King",isbn:"9781451627282"},
+  {rank:55,title:"Braiding Sweetgrass",author:"Robin Wall Kimmerer",isbn:"9781571313560"},
+  {rank:56,title:"The Hunger Games",author:"Suzanne Collins",isbn:"9780439023481"},
+  {rank:57,title:"Small Things Like These",author:"Claire Keegan",isbn:"9780802160034"},
+  {rank:58,title:"White Teeth",author:"Zadie Smith",isbn:"9780375703867"},
+  {rank:59,title:"Where the Crawdads Sing",author:"Delia Owens",isbn:"9780735224292"},
+  {rank:60,title:"The Dutch House",author:"Ann Patchett",isbn:"9780062963673"},
+  {rank:61,title:"North Woods",author:"Daniel Mason",isbn:"9780399589713"},
+  {rank:62,title:"The Sympathizer",author:"Viet Thanh Nguyen",isbn:"9780802123459"},
+  {rank:63,title:"The Fifth Season",author:"N.K. Jemisin",isbn:"9780316229296"},
+  {rank:64,title:"2666",author:"Roberto Bolaño",isbn:"9780312429218"},
+  {rank:65,title:"Evicted",author:"Matthew Desmond",isbn:"9780553447453"},
+  {rank:66,title:"Just Kids",author:"Patti Smith",isbn:"9780060936228"},
+  {rank:67,title:"Piranesi",author:"Susanna Clarke",isbn:"9781635575644"},
+  {rank:68,title:"The Devil in the White City",author:"Erik Larson",isbn:"9780375725609"},
+  {rank:69,title:"Killers of the Flower Moon",author:"David Grann",isbn:"9780307742483"},
+  {rank:70,title:"Know My Name",author:"Chanel Miller",isbn:"9780735223721"},
+  {rank:71,title:"Sing, Unburied, Sing",author:"Jesmyn Ward",isbn:"9781501126062"},
+  {rank:72,title:"Crying in H Mart",author:"Michelle Zauner",isbn:"9780525657743"},
+  {rank:73,title:"Harry Potter and the Deathly Hallows",author:"J.K. Rowling",isbn:"9780545010221"},
+  {rank:74,title:"Klara and the Sun",author:"Kazuo Ishiguro",isbn:"9780593318171"},
+  {rank:75,title:"The Lincoln Highway",author:"Amor Towles",isbn:"9780735222359"},
+  {rank:76,title:"Just Mercy",author:"Bryan Stevenson",isbn:"9780812994520"},
+  {rank:77,title:"Sapiens",author:"Yuval Noah Harari",isbn:"9780062316097"},
+  {rank:78,title:"Kafka on the Shore",author:"Haruki Murakami",isbn:"9781400079278"},
+  {rank:79,title:"1Q84",author:"Haruki Murakami",isbn:"9780307593313"},
+  {rank:80,title:"Deacon King Kong",author:"James McBride",isbn:"9780735216723"},
+  {rank:81,title:"The Immortal Life of Henrietta Lacks",author:"Rebecca Skloot",isbn:"9781400052189"},
+  {rank:82,title:"Tom Lake",author:"Ann Patchett",isbn:"9780063335011"},
+  {rank:83,title:"Let the Great World Spin",author:"Colum McCann",isbn:"9781400063734"},
+  {rank:84,title:"Tenth of December",author:"George Saunders",isbn:"9780812984255"},
+  {rank:85,title:"When Breath Becomes Air",author:"Paul Kalanithi",isbn:"9780812988406"},
+  {rank:86,title:"Life of Pi",author:"Yann Martel",isbn:"9780156027328"},
+  {rank:87,title:"Girl, Woman, Other",author:"Bernardine Evaristo",isbn:"9780802156983"},
+  {rank:88,title:"The Plot Against America",author:"Philip Roth",isbn:"9780618509973"},
+  {rank:89,title:"The Glass Castle",author:"Jeannette Walls",isbn:"9780743247542"},
+  {rank:90,title:"In the Dream House",author:"Carmen Maria Machado",isbn:"9781948226592"},
+  {rank:91,title:"Project Hail Mary",author:"Andy Weir",isbn:"9780593135204"},
+  {rank:92,title:"Drive Your Plow Over the Bones of the Dead",author:"Olga Tokarczuk",isbn:"9780525541349"},
+  {rank:93,title:"Remarkably Bright Creatures",author:"Shelby Van Pelt",isbn:"9780063204157"},
+  {rank:94,title:"The Bee Sting",author:"Paul Murray",isbn:"9780374110598"},
+  {rank:95,title:"A Thousand Splendid Suns",author:"Khaled Hosseini",isbn:"9781594489501"},
+  {rank:96,title:"The Vanishing Half",author:"Brit Bennett",isbn:"9780525536291"},
+  {rank:97,title:"My Year of Rest and Relaxation",author:"Ottessa Moshfegh",isbn:"9780525522119"},
+  {rank:98,title:"Shuggie Bain",author:"Douglas Stuart",isbn:"9780802148506"},
+  {rank:99,title:"Empire of Pain",author:"Patrick Radden Keefe",isbn:"9780385545686"},
+  {rank:100,title:"A Man Called Ove",author:"Fredrik Backman",isbn:"9781476738024"},
+];
 
-// ── State ──────────────────────────────────────────────────────────
+// Build lookup for cross-list detection (normalised key)
+function normKey(title, author) { return (title+author).toLowerCase().replace(/[^a-z0-9]/g,''); }
+const criticsKeys = new Set(CRITICS.map(b => normKey(b.title, b.author)));
+const readersKeys = new Set(READERS.map(b => normKey(b.title, b.author)));
+// Map from normKey -> canonical isbn (use critics isbn as source of truth)
+const canonicalIsbn = {};
+CRITICS.forEach(b => { canonicalIsbn[normKey(b.title, b.author)] = b.isbn; });
+
+function isOnBothLists(book) {
+  const k = normKey(book.title, book.author);
+  return criticsKeys.has(k) && readersKeys.has(k);
+}
+
+// ── State ─────────────────────────────────────────────────────────
+const STORAGE_KEY = 'nyt100_v2';
 let userData = {};
+let currentList = 'critics';
 let currentFilter = 'all';
 let currentSort = 'rank';
 let searchQuery = '';
-let modalBookRank = null;
+let modalBookKey = null; // normKey
 let modalRating = 0;
 let tempRead = false;
 
-function loadData() {
-  try { userData = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); }
-  catch { userData = {}; }
-}
+function loadData() { try { userData = JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}'); } catch { userData={}; } }
+function saveData() { localStorage.setItem(STORAGE_KEY, JSON.stringify(userData)); }
+function getEntry(key) { return userData[key] || {read:false,rating:0,date:'',review:''}; }
 
-function saveData() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(userData));
-}
+// ── Cover ─────────────────────────────────────────────────────────
+function coverUrl(isbn) { return `https://covers.openlibrary.org/b/isbn/${isbn}-M.jpg`; }
 
-function getEntry(rank) {
-  return userData[rank] || { read: false, rating: 0, date: '', review: '' };
-}
+// ── Stats ─────────────────────────────────────────────────────────
+function renderStats() {
+  const list = currentList === 'critics' ? CRITICS : READERS;
+  const entries = list.map(b => getEntry(normKey(b.title, b.author)));
+  const read = entries.filter(e => e.read).length;
+  const rated = entries.filter(e => e.rating > 0);
+  const avg = rated.length ? (rated.reduce((s,e)=>s+e.rating,0)/rated.length).toFixed(1) : null;
 
-// ── Cover URL ──────────────────────────────────────────────────────
-function coverUrl(isbn) {
-  return `https://covers.openlibrary.org/b/isbn/${isbn}-M.jpg`;
-}
+  document.getElementById('statRead').textContent = read;
+  document.getElementById('statReadSub').textContent = `of ${list.length} books`;
+  document.getElementById('statAvg').textContent = avg ? avg + '★' : '—';
+  document.getElementById('statAvgSub').textContent = rated.length ? `from ${rated.length} rated` : 'no ratings yet';
+  document.getElementById('statRated').textContent = rated.length;
 
-// ── Render ─────────────────────────────────────────────────────────
-function starsHtml(n, small = true) {
-  let h = '';
-  for (let i = 1; i <= 5; i++) {
-    h += `<span class="star${i <= n ? ' on' : ''}">${small ? '★' : '★'}</span>`;
+  const dist = [0,0,0,0,0];
+  rated.forEach(e => dist[e.rating-1]++);
+  const maxDist = Math.max(...dist, 1);
+  for (let i=1;i<=5;i++) {
+    const bar = document.getElementById('bar'+i);
+    const h = Math.round((dist[i-1]/maxDist)*24)+2;
+    bar.style.height = h+'px';
+    bar.classList.toggle('active', dist[i-1] > 0);
   }
-  return h;
+  document.getElementById('statDistSub').textContent = dist.some(d=>d>0) ? dist.map((d,i)=>`${i+1}★:${d}`).filter((_,i)=>dist[i]>0).join(' · ') : 'no ratings yet';
+
+  const pct = Math.round((read/list.length)*100);
+  document.getElementById('progressFill').style.width = pct+'%';
+  document.getElementById('progressPct').textContent = pct+'%';
+
+  // Badge updates
+  const critRead = CRITICS.filter(b=>getEntry(normKey(b.title,b.author)).read).length;
+  const readRead = READERS.filter(b=>getEntry(normKey(b.title,b.author)).read).length;
+  document.getElementById('criticsBadge').textContent = `${critRead}/100`;
+  document.getElementById('readersBadge').textContent = `${readRead}/100`;
 }
 
-function renderProgress() {
-  const total = BOOKS.length;
-  const read = BOOKS.filter(b => getEntry(b.rank).read).length;
-  const pct = Math.round((read / total) * 100);
-  document.getElementById('progressFill').style.width = pct + '%';
-  document.getElementById('progressLabel').textContent = pct + '%';
-  document.getElementById('headerMeta').textContent = `${read} of ${total} read`;
+// ── Grid ──────────────────────────────────────────────────────────
+function starsHtml(n) {
+  return Array.from({length:5},(_,i)=>`<span class="star${i<n?' on':''}">${'★'}</span>`).join('');
+}
+function formatDate(d) {
+  if (!d) return '';
+  const [y,m,day] = d.split('-');
+  return ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][+m-1]+` ${+day}, ${y}`;
 }
 
-function getFilteredSorted() {
-  let list = BOOKS.slice();
-
+function getListFiltered() {
+  const list = currentList === 'critics' ? CRITICS : READERS;
+  let res = list.slice();
   if (searchQuery) {
     const q = searchQuery.toLowerCase();
-    list = list.filter(b => b.title.toLowerCase().includes(q) || b.author.toLowerCase().includes(q));
+    res = res.filter(b => b.title.toLowerCase().includes(q) || b.author.toLowerCase().includes(q));
   }
-
-  if (currentFilter === 'read') list = list.filter(b => getEntry(b.rank).read);
-  if (currentFilter === 'unread') list = list.filter(b => !getEntry(b.rank).read);
-
-  list.sort((a, b) => {
-    if (currentSort === 'rank') return a.rank - b.rank;
-    if (currentSort === 'rating') {
-      const ra = getEntry(a.rank).rating || 0;
-      const rb = getEntry(b.rank).rating || 0;
-      return rb - ra || a.rank - b.rank;
-    }
-    if (currentSort === 'date') {
-      const da = getEntry(a.rank).date || '';
-      const db = getEntry(b.rank).date || '';
-      if (!da && !db) return a.rank - b.rank;
-      if (!da) return 1;
-      if (!db) return -1;
-      return db < da ? -1 : db > da ? 1 : 0;
-    }
-    if (currentSort === 'alpha') return a.title.localeCompare(b.title);
+  if (currentFilter==='read') res = res.filter(b=>getEntry(normKey(b.title,b.author)).read);
+  if (currentFilter==='unread') res = res.filter(b=>!getEntry(normKey(b.title,b.author)).read);
+  res.sort((a,b)=>{
+    if (currentSort==='rank') return a.rank-b.rank;
+    if (currentSort==='rating') { const ra=getEntry(normKey(a.title,a.author)).rating||0, rb=getEntry(normKey(b.title,b.author)).rating||0; return rb-ra||a.rank-b.rank; }
+    if (currentSort==='date') { const da=getEntry(normKey(a.title,a.author)).date||'', db=getEntry(normKey(b.title,b.author)).date||''; if(!da&&!db)return a.rank-b.rank; if(!da)return 1; if(!db)return -1; return db<da?-1:db>da?1:0; }
+    if (currentSort==='alpha') return a.title.localeCompare(b.title);
     return 0;
   });
-
-  return list;
+  return res;
 }
 
 function renderGrid() {
   const grid = document.getElementById('bookGrid');
-  const list = getFilteredSorted();
-  document.getElementById('resultsLabel').textContent = `Showing ${list.length} of ${BOOKS.length} books`;
+  const list = getListFiltered();
+  document.getElementById('resultsLabel').textContent = `Showing ${list.length} of ${(currentList==='critics'?CRITICS:READERS).length} books`;
+  if (!list.length) { grid.innerHTML='<div class="empty">No books match your search.</div>'; return; }
 
-  if (!list.length) {
-    grid.innerHTML = '<div class="empty">No books match your search.</div>';
-    return;
-  }
-
-  grid.innerHTML = list.map(book => {
-    const entry = getEntry(book.rank);
+  grid.innerHTML = list.map(book=>{
+    const key = normKey(book.title, book.author);
+    const entry = getEntry(key);
+    const both = isOnBothLists(book);
     const url = coverUrl(book.isbn);
-    return `
-      <div class="book-card${entry.read ? ' is-read' : ''}" data-rank="${book.rank}" tabindex="0" role="button" aria-label="${book.title}">
-        <div class="rank-badge">#${book.rank}</div>
-        ${entry.read ? '<div class="read-badge">READ</div>' : ''}
-        <div class="cover-wrap">
-          <img
-            src="${url}"
-            alt="${book.title} cover"
-            loading="lazy"
-            class="loading"
-            onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"
-            onload="this.classList.remove('loading')"
-          >
-          <div class="cover-placeholder" style="display:none">
-            <span class="ph-icon">📖</span>
-            <span class="ph-title">${book.title}</span>
-          </div>
-        </div>
-        <div class="card-body">
-          <div class="card-title">${book.title}</div>
-          <div class="card-author">${book.author}</div>
-          <div class="card-stars">${starsHtml(entry.rating)}</div>
-          ${entry.date ? `<div class="card-date">${formatDate(entry.date)}</div>` : ''}
-          ${entry.review ? `<div class="card-review-snippet">"${entry.review}"</div>` : ''}
-        </div>
-      </div>`;
+    return `<div class="book-card${entry.read?' is-read':''}${both?' on-both':''}" data-key="${key}" tabindex="0" role="button">
+      <div class="rank-badge">#${book.rank}</div>
+      ${entry.read?'<div class="read-badge">READ</div>':''}
+      <div class="cover-wrap">
+        <img src="${url}" alt="" loading="lazy"
+          onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"
+          onload="this.classList.add('loaded')">
+        <div class="cover-placeholder" style="display:none"><span class="ph-icon">📖</span><span class="ph-title">${book.title}</span></div>
+      </div>
+      <div class="card-body">
+        <div class="card-title">${book.title}</div>
+        <div class="card-author">${book.author}</div>
+        <div class="card-stars">${starsHtml(entry.rating)}</div>
+        ${entry.date?`<div class="card-date">${formatDate(entry.date)}</div>`:''}
+        ${entry.review?`<div class="card-review-snippet">"${entry.review}"</div>`:''}
+      </div>
+    </div>`;
   }).join('');
 
-  grid.querySelectorAll('.book-card').forEach(card => {
-    card.addEventListener('click', () => openModal(+card.dataset.rank));
-    card.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') openModal(+card.dataset.rank); });
+  grid.querySelectorAll('.book-card').forEach(card=>{
+    const handler = ()=>openModal(card.dataset.key);
+    card.addEventListener('click', handler);
+    card.addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' ') handler(); });
   });
 }
 
-function formatDate(d) {
-  if (!d) return '';
-  const [y, m, day] = d.split('-');
-  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  return `${months[+m-1]} ${+day}, ${y}`;
-}
-
-// ── Modal ──────────────────────────────────────────────────────────
-function openModal(rank) {
-  const book = BOOKS.find(b => b.rank === rank);
-  const entry = getEntry(rank);
-  modalBookRank = rank;
+// ── Modal ─────────────────────────────────────────────────────────
+function openModal(key) {
+  const list = currentList==='critics'?CRITICS:READERS;
+  const book = list.find(b=>normKey(b.title,b.author)===key);
+  if (!book) return;
+  const entry = getEntry(key);
+  modalBookKey = key;
   modalRating = entry.rating;
   tempRead = entry.read;
 
-  document.getElementById('modalRank').textContent = `#${rank} on the NYT list`;
+  const onBoth = isOnBothLists(book);
+  const otherList = currentList==='critics'?'Readers\' Pick':'Critics\' Pick';
+  const otherRank = onBoth ? (currentList==='critics'?READERS:CRITICS).find(b=>normKey(b.title,b.author)===key)?.rank : null;
+
+  document.getElementById('modalRank').textContent = `#${book.rank} on the ${currentList==='critics'?"Critics'":"Readers'"} list`;
   document.getElementById('modalTitle').textContent = book.title;
   document.getElementById('modalAuthor').textContent = book.author;
+  const onBothEl = document.getElementById('modalOnBoth');
+  if (onBoth) { onBothEl.style.display='block'; onBothEl.textContent = `★ Also #${otherRank} on the ${otherList}`; }
+  else { onBothEl.style.display='none'; }
 
-  // Cover
   const wrap = document.getElementById('modalCoverWrap');
-  const url = coverUrl(book.isbn);
-  wrap.innerHTML = `
-    <img class="modal-cover" src="${url}" alt="${book.title} cover"
-      onerror="this.style.display='none';document.getElementById('modalCoverFallback').style.display='flex'"
-      onload="this.style.opacity=1">
-    <div class="modal-cover-placeholder" id="modalCoverFallback" style="display:none">📖</div>`;
+  wrap.innerHTML = `<img class="modal-cover" src="${coverUrl(book.isbn)}" alt=""
+    onerror="this.style.display='none';document.getElementById('mPh').style.display='flex'"
+    onload="this.style.opacity=1">
+    <div class="modal-cover-ph" id="mPh" style="display:none">📖</div>`;
 
-  // Read toggle
   updateToggle(tempRead);
-
-  // Stars
   updateModalStars(modalRating);
-
-  // Date
-  document.getElementById('dateInput').value = entry.date || '';
-
-  // Review
-  document.getElementById('reviewInput').value = entry.review || '';
-
+  document.getElementById('dateInput').value = entry.date||'';
+  document.getElementById('reviewInput').value = entry.review||'';
   document.getElementById('modalOverlay').classList.add('open');
-  document.body.style.overflow = 'hidden';
+  document.body.style.overflow='hidden';
 }
 
 function closeModal() {
   document.getElementById('modalOverlay').classList.remove('open');
-  document.body.style.overflow = '';
-  modalBookRank = null;
+  document.body.style.overflow='';
+  modalBookKey=null;
 }
 
-function updateToggle(isRead) {
-  tempRead = isRead;
-  const track = document.getElementById('toggleTrack');
-  const label = document.getElementById('toggleLabel');
-  if (isRead) {
-    track.classList.add('on');
-    label.textContent = 'Marked as read';
-  } else {
-    track.classList.remove('on');
-    label.textContent = 'Mark as read';
-  }
+function updateToggle(on) {
+  tempRead=on;
+  document.getElementById('toggleTrack').classList.toggle('on',on);
+  document.getElementById('toggleLabel').textContent = on ? 'Marked as read' : 'Mark as read';
 }
 
-function updateModalStars(val) {
-  modalRating = val;
-  document.querySelectorAll('#starInput .s').forEach(s => {
-    s.classList.toggle('on', +s.dataset.v <= val);
-  });
+function updateModalStars(v) {
+  modalRating=v;
+  document.querySelectorAll('#starInput .s').forEach(s=>s.classList.toggle('on',+s.dataset.v<=v));
 }
 
 function saveModal() {
-  if (modalBookRank === null) return;
-  userData[modalBookRank] = {
-    read: tempRead,
-    rating: modalRating,
-    date: document.getElementById('dateInput').value,
-    review: document.getElementById('reviewInput').value.trim(),
-  };
+  if (!modalBookKey) return;
+  // Save under canonical key — so both lists share the same data
+  userData[modalBookKey] = { read:tempRead, rating:modalRating, date:document.getElementById('dateInput').value, review:document.getElementById('reviewInput').value.trim() };
   saveData();
   closeModal();
-  renderProgress();
+  renderStats();
   renderGrid();
 }
 
-// ── Event listeners ────────────────────────────────────────────────
-document.getElementById('readToggle').addEventListener('click', () => updateToggle(!tempRead));
-
-document.querySelectorAll('#starInput .s').forEach(s => {
-  s.addEventListener('click', () => updateModalStars(+s.dataset.v === modalRating ? 0 : +s.dataset.v));
-  s.addEventListener('mouseover', () => {
-    document.querySelectorAll('#starInput .s').forEach(x => x.classList.toggle('on', +x.dataset.v <= +s.dataset.v));
-  });
-  s.addEventListener('mouseleave', () => updateModalStars(modalRating));
+// ── Event wiring ──────────────────────────────────────────────────
+document.getElementById('readToggle').addEventListener('click',()=>updateToggle(!tempRead));
+document.querySelectorAll('#starInput .s').forEach(s=>{
+  s.addEventListener('click',()=>updateModalStars(+s.dataset.v===modalRating?0:+s.dataset.v));
+  s.addEventListener('mouseover',()=>document.querySelectorAll('#starInput .s').forEach(x=>x.classList.toggle('on',+x.dataset.v<=+s.dataset.v)));
+  s.addEventListener('mouseleave',()=>updateModalStars(modalRating));
 });
+document.getElementById('modalSave').addEventListener('click',saveModal);
+document.getElementById('modalCancel').addEventListener('click',closeModal);
+document.getElementById('modalOverlay').addEventListener('click',e=>{ if(e.target===document.getElementById('modalOverlay'))closeModal(); });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape')closeModal(); });
 
-document.getElementById('modalSave').addEventListener('click', saveModal);
-document.getElementById('modalCancel').addEventListener('click', closeModal);
-document.getElementById('modalOverlay').addEventListener('click', e => {
-  if (e.target === document.getElementById('modalOverlay')) closeModal();
-});
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
-
-document.querySelectorAll('.filter-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    currentFilter = btn.dataset.filter;
-    renderGrid();
+document.querySelectorAll('.list-tab').forEach(tab=>{
+  tab.addEventListener('click',()=>{
+    document.querySelectorAll('.list-tab').forEach(t=>t.classList.remove('active'));
+    tab.classList.add('active');
+    currentList = tab.dataset.list;
+    document.getElementById('listDesc').textContent = currentList==='critics'
+      ? 'Voted by 503 novelists, critics & writers'
+      : 'Readers\' picks — 39 books overlap with the critics\' list';
+    renderStats(); renderGrid();
   });
 });
-
-document.getElementById('sortSelect').addEventListener('change', e => {
-  currentSort = e.target.value;
-  renderGrid();
+document.querySelectorAll('.filter-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active'); currentFilter=btn.dataset.filter; renderGrid();
+  });
 });
-
-document.getElementById('searchInput').addEventListener('input', e => {
-  searchQuery = e.target.value.trim();
-  renderGrid();
-});
+document.getElementById('sortSelect').addEventListener('change',e=>{ currentSort=e.target.value; renderGrid(); });
+document.getElementById('searchInput').addEventListener('input',e=>{ searchQuery=e.target.value.trim(); renderGrid(); });
 
 // ── Init ──────────────────────────────────────────────────────────
-loadData();
-renderProgress();
-renderGrid();
+loadData(); renderStats(); renderGrid();
 </script>
 </body>
 </html>
